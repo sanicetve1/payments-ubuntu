@@ -1,0 +1,23 @@
+# Ignore Python virtual environments
+venv/
+
+# Ignore environment files
+.env
+
+# Ignore Python cache
+__pycache__/
+
+# Ignore IDE config (like PyCharm)
+.idea/
+
+
+# Ignore the virtual environment folder inside stripe
+stripe/env_stripe
+
+# Ignore specific test data scripts
+stripe/generate_test_data.py
+stripe/test-data.py
+
+# Ignore the Stripe keys file
+documents/Stripe-keys.txt
+

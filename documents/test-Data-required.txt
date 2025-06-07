@@ -1,0 +1,65 @@
+1. 🧍‍♂️ End User Data (for transaction history, classification, and queries)
+🔹 Required Test Data Schema (Transactions)
+Field Name	Type	Example Value	Purpose
+txn_id	string	TXN98212	Unique ID for each transaction
+user_id	string	USER123	To relate transactions to user
+timestamp	datetime	2024-12-21 10:15:00	Time of transaction
+amount	float	499.99	Amount paid
+merchant_name	string	Netflix, Grab, Shopee	For merchant-based classification
+category	string	Travel, Utility, Subscription	ML label or classification target
+payment_method	string	UPI, CreditCard, Wallet	To simulate varied flows
+status	string	success, failed, refunded	For dispute/failure handling
+geo_location	string	Singapore, India	Can aid risk scoring
+currency	string	SGD, INR	Multi-currency support
+flagged_as_fraud	bool	True / False	For ML training/testing fraud detection
+
+✅ 2. 🧠 AI Assistant / GPT Interaction
+🔹 Test Data for Prompt Matching (RAG)
+Use FAQ-like QA pairs or user utterances for ChromaDB.
+
+Field Name	Type	Example
+query_text	string	“Why was I charged twice for Grab?”
+response	string	“You may have placed two orders...”
+intent	string	dispute_issue, card_not_working
+embedding	vector	(auto-computed for Chroma)
+
+📌 Use this to:
+
+Populate Chroma vector store
+
+Enhance prompt grounding for GPT
+
+Train basic intent classifiers if needed
+
+✅ 3. 🧑‍💻 Agent Support Workflows
+🔹 Simulated Support Tickets
+Field Name	Type	Example Value	Purpose
+ticket_id	string	TKT543	Trace support session
+user_id	string	USER123	Link to transaction
+issue_summary	string	“Failed card swipe at petrol station”	Prompt input for GPT
+status	string	open / resolved / escalated	LangGraph step transition
+agent_response	string	GPT-generated or agent-entered text	Quality assessment
+
+✅ 4. 📊 Fraud & Risk Analyst Data
+🔹 ML Training/Test Dataset for Risk Scoring
+Feature	Type	Notes
+user_id	string	Links to user
+txn_frequency	int	No. of transactions in last week
+avg_txn_amount	float	Average amount
+num_countries_used	int	Location spread
+num_chargebacks	int	Historical disputes
+is_high_risk	bool	Ground truth for classification
+
+🎯 This can feed into your RandomForestClassifier or any risk model.
+
+📁 Recommended Data Sources (for bootstrapping)
+🔄 Stripe Testing Data
+
+🧾 Banking77 dataset on Hugging Face
+
+💳 Kaggle datasets:
+
+Credit Card Fraud Detection
+
+Synthetic Financial Dataset For Fraud Detection
+
