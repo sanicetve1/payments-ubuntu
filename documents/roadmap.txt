@@ -1,0 +1,25 @@
+| Tool Name                        | Description                                                   | Sample Prompt It Can Handle                       |
+| -------------------------------- | ------------------------------------------------------------- | ------------------------------------------------- |
+| `get_total_payments_by_customer` | Sum of all payments made by a customer                        | "How much did Alice Tan pay in total?"            |
+| `get_recent_payments`            | Payments in the last X days/weeks                             | "List payments made in the last 7 days"           |
+| `get_payment_summary`            | Count + sum of payments by method/currency                    | "Show me how many Klarna vs card payments we had" |
+| `get_customer_payment_status`    | Fetch status like `requires_payment_method`, `succeeded` etc. | "Who has pending payments?"                       |
+| `get_failed_or_disputed`         | Fetch failed or disputed transactions                         | "Show me failed payments last month"              |
+| `get_currency_distribution`      | Pie chart or data grouped by currency used                    | "Which currency is used the most?"                |
+| `get_top_customers_by_volume`    | Sort by amount spent, descending                              | "Who are our top 5 paying customers?"             |
+
+
+tools/
+│
+├── __init__.py
+├── api_tools.py             # (optional: can stay minimal)
+├── time_tools.py            # Recent payments, date filtering
+├── value_tools.py           # Totals, summaries, volume
+├── risk_tools.py            # Fraud, dispute analysis
+├── customer_tools.py        # Customer lookups, profiles
+
+
+Goal	Current Approach	Scalable Alternative
+Handle many user questions	Tool per use case	Intent detection + generalized tools
+Map user text to tool inputs	Manual mapping in prompt	Hugging Face classifier or prompt-based router
+Support fuzzy time / values	Regex parsing	Few-shot GPT function parser or light ML model

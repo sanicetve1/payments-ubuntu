@@ -62,3 +62,30 @@ Designing a simple MVP feature flow?
 Or starting the FastAPI backend + SQLite schema?
 
 You choose the next step.
+
+
+
+✅ You might still host synthetic training data there if needed
+
+✅ You might borrow inspiration from datasets like Banking77 for better intent design
+
+======
+
+ Analogy
+Think of this like:
+
+main.py: provides data services
+
+run_agent.py: is an LLM agent that consumes those services
+
+They should remain separate unless you want to expose the agent via API or UI — which we can do later.
+=======
+
+
+If your goal is:
+
+“Expose the GPT agent via a /chat API in FastAPI”
+
+Then yes — you’d import the logic from run_agent.py into main.py, like:
+
+=====

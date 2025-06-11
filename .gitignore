@@ -1,5 +1,7 @@
 # Ignore Python virtual environments
 venv/
+documents/
+HF/
 
 # Ignore environment files
 .env
@@ -17,6 +19,7 @@ stripe/env_stripe
 # Ignore specific test data scripts
 stripe/generate_test_data.py
 stripe/test-data.py
+
 
 # Ignore the Stripe keys file
 documents/Stripe-keys.txt

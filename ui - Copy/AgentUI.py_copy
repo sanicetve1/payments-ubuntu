@@ -1,0 +1,42 @@
+# ui/app.py
+from dotenv import load_dotenv
+import os
+# ✅ Load .env so OPENAI_API_KEY is available
+dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+load_dotenv(dotenv_path)
+
+import streamlit as st
+from agents.runer import run_agent_query
+from agents.memory import list_conversations
+import os
+
+
+st.set_page_config(layout="wide")
+
+# --- Sidebar: History ---
+st.sidebar.title("🕓 Recent Conversations")
+history = list_conversations(limit=3)n
+for h in history:
+    st.sidebar.markdown(f"- {h}")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("🔄 Refresh the page after new queries.")
+
+# --- Main Input/Output ---
+st.title("💬 Payments Agent")
+
+# Prompt input
+user_input = st.text_input("Ask something:", placeholder="e.g. Show me all card payments")
+
+if st.button("Run Agent") and user_input.strip():
+    with st.spinner("Thinking..."):
+        result_state = run_agent_query(user_input)
+
+        # --- Main output ---
+        st.subheader("🤖 Final Response")
+        st.markdown(result_state.final_output)
+
+        # --- Steps output (right column) ---
+        with st.expander("🪜 Agent Reasoning Steps"):
+            for step in result_state.intermediate_steps:
+                st.markdown(f"- {step}")

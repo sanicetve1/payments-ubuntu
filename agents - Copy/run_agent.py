@@ -12,7 +12,7 @@ openai_key = os.getenv("OPENAI_API_KEY")
 
 # 🧠 Initialize LLM with model and key
 llm = ChatOpenAI(
-    model="gpt-4o",
+    model="gpt-4",
     temperature=0,
     openai_api_key=openai_key  # explicitly pass key
 )

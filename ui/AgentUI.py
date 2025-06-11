@@ -1,0 +1,55 @@
+import os
+import sys
+import streamlit as st
+
+# ✅ MUST be first Streamlit command
+st.set_page_config(page_title="Payments Agent", layout="wide")
+
+# --- Python path fix for agent imports ---
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+#trace who sets the .env
+
+import traceback
+
+if os.getenv("OPENAI_API_KEY"):
+    print("⚠️ OPENAI_API_KEY was already set at startup:")
+    traceback.print_stack()
+
+# --- Load environment ---
+from dotenv import load_dotenv
+print("🔍 BEFORE .env load:", os.getenv("OPENAI_API_KEY"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
+print("🔍 AFTER .env load :", os.getenv("OPENAI_API_KEY"))
+
+# Fetch the API key from the environment
+api_key = os.getenv("OPENAI_API_KEY")
+
+# Print the full key (or mask it if you're worried about safety)
+print("✅ Loaded API Key:", api_key)
+
+# --- Agent + Memory ---
+from agents.runer import run_agent_query
+from agents.memory import list_conversations
+
+# --- Sidebar: Past Conversations ---
+st.sidebar.title("🕓 Recent Conversations")
+for h in list_conversations(limit=5):
+    with st.sidebar.expander("Conversation", expanded=False):
+        st.markdown(h)
+
+
+# --- Main UI ---
+st.title("💬 Payments Intelligence Agent")
+
+user_query = st.text_input("Ask something like:", "Show me customers who used card")
+
+if st.button("Run Agent"):
+    with st.spinner("🤖 Thinking..."):
+        result = run_agent_query(user_query)
+        st.markdown("### ✅ Agent Response")
+        st.success(result.final_output)
+
+        with st.expander("🧪 Trace"):
+            for step in result.intermediate_steps:
+                st.markdown(f"- {step}")

@@ -1,0 +1,3 @@
+Aplication startup - (venv) PS C:\Users\San\Desktop\projects\Payments> uvicorn app.main:app --reload - start fastapi.
+
+PS C:\Users\San\Desktop\Projects\Payments> streamlit run ui/AgentUI.py - UI streamlit start 
