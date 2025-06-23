@@ -1,0 +1,41 @@
+By default, **Alt+Tab** switches **only within the VirtualBox VM window**, not between your Ubuntu VM and Windows host. But you can absolutely enable smooth switching — here's how:
+
+---
+
+### ✅ Options to Switch Between Ubuntu VM and Windows (Host)
+
+#### 1. **Use Host Key to Release Focus**
+
+* **Default Host Key** = **Right Ctrl** (check bottom right of VM window)
+* Press **Right Ctrl** once → this "releases" the keyboard/mouse from the VM
+* Then you can use **Alt+Tab** on your host (Windows)
+
+> 🔁 To go back into the VM: Just click inside the Ubuntu window again.
+
+---
+
+#### 2. **Enable Seamless Mode (Optional UI Integration)**
+
+If you want your Ubuntu windows to float on your Windows desktop:
+
+1. Press **Right Ctrl + L**
+2. This activates **Seamless Mode** (after Guest Additions are installed)
+3. Ubuntu windows will appear integrated with your Windows desktop
+
+To exit: Press **Right Ctrl + L** again.
+
+---
+
+#### 3. **Dual Monitor or Fullscreen Shortcut**
+
+* **Fullscreen toggle**: `Right Ctrl + F`
+* Switch between apps using **Windows+Tab** or **Alt+Tab** if you release input with `Right Ctrl`.
+
+---
+
+### 🔁 TL;DR:
+
+* Use **Right Ctrl** to toggle control between VM and host
+* Then **Alt+Tab** will work across both systems
+
+Would you like a full shortcut list for better VirtualBox navigation?

@@ -4,7 +4,9 @@ import requests
 import logging
 import ast
 from tools.time_tools import time_tools
+from tools.rag_tool import rag_tool
 
+print("enter api_tools.py")
 
 BASE_URL = "http://localhost:8000"
 
@@ -33,6 +35,7 @@ def fetch_customers_by_ids(customer_ids):
 
 
 def fetch_payments_by_method(method: str):
+    print("fetch payments by method is called ")
     method = method.strip().lower().replace("'", "")
     print("🔍 Payment method filter triggered with:", method)
     try:
@@ -51,6 +54,7 @@ def fetch_customer_payments(customer_id: str):
 def fetch_flagged_customers(_=None):
     return requests.get(f"{BASE_URL}/risk/flagged").json()
 
+print("🛠 calling get_payments_by_method tool")
 tools = time_tools + [
     Tool.from_function(
         name="get_customers",
@@ -59,8 +63,10 @@ tools = time_tools + [
     ),
     Tool.from_function(
         name="get_payments_by_method",
-        description="Fetch all payments for a given method like 'card' or 'klarna'",
-        func=fetch_payments_by_method
+        description="Fetch all payments for a given method like 'card', 'cash', 'alipay' or 'klarna'. "
+        "Returns payment records that include 'customer_id', which can be used "
+        "with 'fetch_customers_by_ids' to get the full customer details.",
+        func=fetch_payments_by_method,
     ),
     Tool.from_function(
         name="get_customer_payments",
@@ -74,7 +80,9 @@ tools = time_tools + [
     ),
     Tool.from_function(
         name="fetch_customers_by_ids",
-        description="Fetch details of multiple customers using a list of customer IDs)",
+        description= "Fetch full customer details given a list of customer_ids. "
+        "Use this after calling 'get_payments_by_method' or other functions that return customer_ids.",
         func=fetch_customers_by_ids
-    )
+    ),
+    rag_tool
 ]

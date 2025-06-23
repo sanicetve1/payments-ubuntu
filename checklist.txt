@@ -1,0 +1,96 @@
+Absolutely. Here's a **structured checklist** to get your intelligent financial agent system to **100% production-ready** — organized by priority and module.
+
+---
+
+## ✅ 100% Completion Checklist for Decision-Making Agent
+
+### 🔧 A. **ReAct Agent Completion (Core Logic)**
+
+| Task                                                                                                       | Priority | Status |
+| ---------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| ✅ Refactor existing tools with stricter schemas and input validation                                       | 🔴 High  | ⬜      |
+| ✅ Add granular tools: `get_disputed_payments`, `get_latest_disputed_payment`, `get_customer_by_payment_id` | 🔴 High  | ⬜      |
+| ✅ Update `api_tools.py` to include all new tools in unified `tools = [...]` list                           | 🔴 High  | ⬜      |
+| ✅ Inject custom ReAct-style prompt for consistent tool planning                                            | 🔴 High  | ⬜      |
+| ✅ Enable `handle_parsing_errors=True` in `AgentExecutor`                                                   | 🔴 High  | ⬜      |
+| ✅ Route all queries through ReAct agent in `AgentUI.py`                                                    | 🔴 High  | ⬜      |
+| ✅ Test chained query like: “Who is the customer behind the last disputed transaction?”                     | 🔴 High  | ⬜      |
+
+---
+
+### 🧠 B. **Reasoning and Response Formatting**
+
+| Task                                                                                           | Priority  | Status |
+| ---------------------------------------------------------------------------------------------- | --------- | ------ |
+| ✅ Add human-readable `Final Answer:` summarizer after tool chaining                            | 🟡 Medium | ⬜      |
+| ✅ Consider light GPT call (e.g. `llm.predict`) to summarize tool\_result into natural language | 🟡 Medium | ⬜      |
+| ✅ Include tool trace (thoughts + actions) in debug logs + UI                                   | 🟡 Medium | ✅      |
+
+---
+
+### 🧰 C. **Tool Reliability and Coverage**
+
+| Task                                                                                    | Priority  | Status |
+| --------------------------------------------------------------------------------------- | --------- | ------ |
+| ✅ Add exception handling inside every tool (try/except + default return)                | 🔴 High   | ⬜      |
+| ✅ Validate empty tool results and force agent to reason accordingly                     | 🔴 High   | ⬜      |
+| ✅ Add more testable tools: `get_flagged_transactions`, `get_recent_card_payments`, etc. | 🟡 Medium | ⬜      |
+
+---
+
+### 📄 D. **RAG Integration Enhancements**
+
+| Task                                                                       | Priority  | Status |
+| -------------------------------------------------------------------------- | --------- | ------ |
+| ✅ Refine `query_rag_tool` to return consistent summaries from vector store | 🟡 Medium | ⬜      |
+| ✅ Ensure AML questions like “What is MAS Notice 626?” trigger RAG reliably | 🟡 Medium | ⬜      |
+| ✅ Add example questions to validate RAG effectiveness across PDFs          | 🟡 Medium | ⬜      |
+
+---
+
+### 🏗️ E. **Architecture + Modularity**
+
+| Task                                                                                 | Priority | Status |
+| ------------------------------------------------------------------------------------ | -------- | ------ |
+| ✅ Modularize tool definitions (`payments_tools.py`, `rag_tools.py`, `risk_tools.py`) | 🟢 Low   | ⬜      |
+| ✅ Move shared utilities like `BASE_URL`, `try_tool()` wrapper to `utils.py`          | 🟢 Low   | ⬜      |
+| ✅ Add docstrings to all tools + nodes for future devs                                | 🟢 Low   | ⬜      |
+
+---
+
+### 🧪 F. **Test Coverage and QA**
+
+| Task                                                                      | Priority | Status |
+| ------------------------------------------------------------------------- | -------- | ------ |
+| ✅ Add test cases for multi-hop chains (disputed → customer, card → fraud) | 🔴 High  | ⬜      |
+| ✅ Verify fallback to autonomous GPT only when tools + RAG fail            | 🔴 High  | ⬜      |
+| ✅ Manually test common edge cases (e.g. no results, wrong ID, 0 disputed) | 🔴 High  | ⬜      |
+
+---
+
+### 📈 G. **(Optional) Enhancements**
+
+| Task                                                             | Priority    | Status |
+| ---------------------------------------------------------------- | ----------- | ------ |
+| ✅ Add `ConversationBufferMemory` for natural multi-turn dialog   | 🟢 Optional | ⬜      |
+| ✅ Store final outputs + state history in SQLite for UI retrieval | 🟢 Optional | ✅      |
+| ✅ UI toggle to view tool trace / raw result / final output       | 🟢 Optional | ⬜      |
+| ✅ Add API call counter/logging to track GPT usage per question   | 🟢 Optional | ⬜      |
+
+---
+
+## 📋 Master Kanban Summary
+
+| Module            | Items Remaining |
+| ----------------- | --------------- |
+| ReAct Agent Core  | 7               |
+| Tool Reliability  | 5               |
+| RAG Enhancements  | 3               |
+| Response Logic    | 2               |
+| Modularity        | 3               |
+| Testing & QA      | 3               |
+| Optional Upgrades | \~3             |
+
+---
+
+Would you like me to generate this as a shared **Notion-style task board**, exportable checklist (Markdown), or maintain it in a persistent dev tracker?

@@ -1,0 +1,71 @@
+# agents/nodes/intent_classifier.py
+
+from agents.state import AgentState
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import PromptTemplate
+from langchain.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+# 🧠 Load GPT model
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+
+# 🧭 Intent prompt with examples
+INTENT_PROMPT = PromptTemplate.from_template("""
+You are an intent classifier for a financial assistant that uses 3 systems:
+
+- TOOL: for structured data like customers, payments, amounts, fraud flags
+- RAG: for document-based questions, like AML laws, MAS notices, regulatory policies, onboarding rules, or legal compliance
+- AUTONOMOUS: for general advice, opinions, or vague queries
+
+Examples:
+- "List customers who used cash" → tool
+- "Fetch payments made by card" → tool
+- "Give me the AML strategy for Singapore" → rag
+- "What are KYC requirements for property agents?" → rag
+- "Summarize MAS Notice 626 in 1 line" → rag
+- "Explain customer onboarding regulation" → rag
+- "Why is financial literacy important?" → autonomous
+- "What’s your opinion on buy-now-pay-later?" → autonomous
+
+Now classify the user’s query:
+
+User: "{user_input}"
+
+Respond with one word: tool, rag, or autonomous.
+""")
+
+# 🧲 Vector store RAG override logic
+def vectorstore_hits_rag(user_input: str, threshold: float = 0.7) -> bool:
+    """Return True if user_input semantically matches any chunk in the RAG vector DB."""
+    try:
+        db = Chroma(
+            persist_directory="rag_vectorstore_local",
+            embedding_function=HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        )
+        results = db.similarity_search_with_score(user_input, k=1)
+        if results and results[0][1] >= threshold:
+            print(f"🧲 [VectorMatch] Similarity score = {results[0][1]:.3f} → triggering RAG")
+            return True
+    except Exception as e:
+        print(f"❌ [VectorMatch] Failed: {e}")
+    return False
+
+# 🔁 Combined intent classifier
+def classify_intent(state: AgentState) -> AgentState:
+    prompt = INTENT_PROMPT.format(user_input=state.user_input)
+    response = llm.predict(prompt).strip().lower()
+    print(f"🧠 [IntentClassifier] Raw LLM output: '{response}'")
+
+    # Step 1: Accept valid GPT prediction
+    if response not in {"tool", "rag", "autonomous"}:
+        response = "unknown"
+
+    state.intent = response
+
+    # Step 2: RAG override using vector DB
+    if response != "tool" and vectorstore_hits_rag(state.user_input):
+        print("🔁 [IntentClassifier] Overriding intent to 'rag' via vector match")
+        state.intent = "rag"
+
+    state.append_step(f"🔍 Intent classified as: {state.intent}")
+    return state

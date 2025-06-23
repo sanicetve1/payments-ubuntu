@@ -1,0 +1,75 @@
+# AgentUI.py
+
+import os
+import sys
+import types
+import torch
+import traceback
+import streamlit as st
+from dotenv import load_dotenv
+
+# --- Fix Torch ImportError for Chroma on Windows ---
+sys.modules["torch.classes"] = types.ModuleType("torch.classes")
+
+# --- Load Environment Variables ---
+load_dotenv(override=True)
+
+# Debug env
+if os.getenv("OPENAI_API_KEY"):
+    print("🔐 OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY")[:10] + "...")
+
+# Fix path to enable agent import
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+print("📂 Working directory:", os.getcwd())
+
+# Import agent runner
+try:
+    from agents.runer import run_agent_query
+except ModuleNotFoundError:
+    print("❌ Could not import 'run_agent_query'")
+    traceback.print_exc()
+
+# ✅ Streamlit Config
+st.set_page_config(page_title="Payments Agent", layout="wide")
+st.title("💳 Financial Assistant")
+
+# --- User Query Input ---
+user_query = st.text_input("Ask a question about payments, customers, or regulations:", key="user_query")
+
+# --- Session state for history ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# --- Trigger agent ---
+if st.button("Ask Agent") and user_query:
+    result = run_agent_query(user_query)
+
+    # ✅ Main Answer Output
+    if result.final_output:
+        st.success(result.final_output)
+    else:
+        st.warning("🤔 No output returned by the agent.")
+
+    # ✅ Show tool_result if available
+    if result.tool_result:
+        st.markdown("### 🧾 Retrieved Records (Metadata)")
+        for i, record in enumerate(result.tool_result, 1):
+            st.markdown(f"**Record {i}:**")
+            st.json(record)
+
+    # 🧠 Agent Reasoning Trace
+    with st.expander("🧠 Agent Trace (Steps)", expanded=False):
+        for step in result.intermediate_steps:
+            st.markdown(f"- {step}")
+
+    # 💾 Save conversation history
+    if result.history:
+        st.session_state.chat_history.extend(result.history)
+
+# --- Sidebar for Past Conversations ---
+with st.sidebar.expander("🕘 Past Conversations", expanded=True):
+    if st.session_state.chat_history:
+        for i, step in enumerate(st.session_state.chat_history):
+            st.markdown(f"**{i+1}.** {step}")
+    else:
+        st.markdown("_No past conversation yet._")

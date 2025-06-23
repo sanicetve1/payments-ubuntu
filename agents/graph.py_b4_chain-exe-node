@@ -1,0 +1,139 @@
+from langgraph.graph import StateGraph
+from agents.state import AgentState
+from agents.nodes.intent_classifier import classify_intent  # ✅ Now imported from modular file
+from agents.nodes.autonomous_gpt_node import run_autonomous_gpt
+from tools.api_tools import (
+    fetch_customers,
+    fetch_payments_by_method,
+    fetch_flagged_customers,
+)
+from tools.rag_tool import query_rag_tool
+
+# Define each tool node
+
+def format_preview(items: list, label: str) -> str:
+    if not items:
+        return f"No {label} records found."
+    preview_lines = [f"{i+1}. {item.get('name', item.get('id', 'Unknown'))}" for i, item in enumerate(items[:3])]
+    preview_text = "\n".join(preview_lines)
+    return f"Found {len(items)} {label} records.\nTop results:\n{preview_text}"
+
+def get_customers_node(state: AgentState) -> AgentState:
+    print("🔧 [get_customers_node] Executing tool: fetch_customers")
+    state.tool_result = fetch_customers()
+    print(f"📦 [get_customers_node] Tool result: {state.tool_result}")
+    state.final_output = format_preview(state.tool_result, "customer")
+    state.append_step("✅ Retrieved customers")
+    return state
+
+def get_payments_by_method_node(state: AgentState) -> AgentState:
+    print("🔧 [get_payments_by_method_node] Executing tool: fetch_payments_by_method")
+    method = state.tool_args.get("method")
+    print(f"🔍 [get_payments_by_method_node] Method argument: {method}")
+    state.tool_result = fetch_payments_by_method(method)
+    print(f"📦 [get_payments_by_method_node] Tool result: {state.tool_result}")
+    state.final_output = format_preview(state.tool_result, f"'{method}' payment")
+    state.append_step(f"✅ Retrieved payments with method: {method}")
+    return state
+
+def get_flagged_customers_node(state: AgentState) -> AgentState:
+    print("🔧 [get_flagged_customers_node] Executing tool: fetch_flagged_customers")
+    state.tool_result = fetch_flagged_customers()
+    print(f"📦 [get_flagged_customers_node] Tool result: {state.tool_result}")
+    state.final_output = format_preview(state.tool_result, "flagged customer")
+    state.append_step("✅ Retrieved flagged customers")
+    return state
+
+def rag_node(state: AgentState) -> AgentState:
+    print("📄 [rag_node] Running RAG vector search")
+    result = query_rag_tool(state.user_input)
+    print(f"📄 [rag_node] RAG result: {result}")
+    state.final_output = result
+    state.append_step("📄 RAG result fetched")
+    return state
+
+def autonomous_node(state: AgentState) -> AgentState:
+    print("🧠 [autonomous_node] Executing GPT autonomous reasoning")
+    return run_autonomous_gpt(state)
+
+# Tool router node
+
+def tool_router(state: AgentState) -> dict:
+    tool = state.tool_name
+    print(f"🔀 [tool_router] Routing to specific tool node: {tool}")
+    if tool in {"get_customers", "get_payments_by_method", "get_flagged_customers"}:
+        return {"next": tool}
+    else:
+        print("⚠️ [tool_router] Unknown tool_name. Returning fallback.")
+        return {"next": "autonomous_node"}
+
+# Branching key for top-level intent
+
+def intent_branch(state: AgentState) -> str:
+    print(f"🧭 [intent_branch] Intent classified as: {state.intent}")
+    return state.intent
+
+# Define the graph
+print("🧠 [graph] Initializing LangGraph state workflow")
+workflow = StateGraph(AgentState)
+
+workflow.add_node("intent_router", classify_intent)
+workflow.add_node("tool_router", tool_router)
+workflow.add_node("get_customers", get_customers_node)
+workflow.add_node("get_payments_by_method", get_payments_by_method_node)
+workflow.add_node("get_flagged_customers", get_flagged_customers_node)
+workflow.add_node("rag_node", rag_node)
+workflow.add_node("autonomous_node", autonomous_node)
+
+workflow.set_entry_point("intent_router")
+
+workflow.add_conditional_edges("intent_router", intent_branch, {
+    "tool": "tool_router",
+    "rag": "rag_node",
+    "autonomous": "autonomous_node"
+})
+
+workflow.add_conditional_edges("tool_router", lambda state: tool_router(state)["next"], {
+    "get_customers": "get_customers",
+    "get_payments_by_method": "get_payments_by_method",
+    "get_flagged_customers": "get_flagged_customers",
+    "autonomous_node": "autonomous_node"
+})
+
+workflow.set_finish_point("get_customers")
+workflow.set_finish_point("get_payments_by_method")
+workflow.set_finish_point("get_flagged_customers")
+workflow.set_finish_point("rag_node")
+workflow.set_finish_point("autonomous_node")
+
+from agents.state import AgentState
+
+def run_agent_query(user_input: str):
+    print(f"\n🟢 [run_agent_query] Received: '{user_input}'")
+    initial_state = AgentState(user_input=user_input)
+
+    # 🧠 Run LangGraph agent
+    output_dict = agent_graph.invoke(initial_state)
+
+    print("📦 [run_agent_query] Raw state keys returned:")
+    for key, value in output_dict.items():
+        summary = str(value)
+        if isinstance(value, list):
+            summary = f"{len(value)} items"
+        elif isinstance(value, str) and len(value) > 100:
+            summary = value[:100] + "..."
+        print(f"   - {key}: {summary}")
+
+    # ✅ Convert dict into AgentState to access typed fields
+    final_state = AgentState(**output_dict)
+
+    print("✅ [run_agent_query] Final output:", final_state.final_output)
+    return final_state
+
+
+
+agent_graph = workflow.compile()
+
+def build_autonomous_agent_graph():
+    print("✅ [graph] Building structured LangGraph agent...")
+    return agent_graph

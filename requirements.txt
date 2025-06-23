@@ -1,0 +1,32 @@
+# === Web & API ===
+fastapi==0.115.9
+uvicorn==0.34.3
+requests==2.32.3
+python-dotenv==1.1.0
+
+# === Langchain & LangGraph Core ===
+langchain==0.3.25
+langchain-core==0.3.64
+langchain-openai==0.3.21
+langgraph==0.4.8
+openai==1.84.0
+sentence-transformers
+langchain-community==0.3.24
+chromadb==1.0.12
+numpy==1.26.4
+
+# === Streamlit UI ===
+streamlit==1.45.1
+
+# === Pydantic Models & Validation ===
+pydantic==2.11.5
+pydantic-settings==2.9.1
+pydantic_core==2.33.2
+
+# === Utilities ===
+aiohttp==3.12.9
+tqdm==4.67.1
+
+# === Torch (CPU only) ===
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu

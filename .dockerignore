@@ -1,0 +1,34 @@
+# ⛔ Python cache and environment
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+env/
+venv/
+*.egg-info/
+
+# ⛔ OS / Editor clutter
+.DS_Store
+Thumbs.db
+*.log
+
+# ⛔ Git files
+.git/
+.gitignore
+
+# ⛔ Local artifacts
+*.tar.gz
+*.zip
+*.bak
+
+# ⛔ Development artifacts
+*.ipynb
+.vscode/
+.idea/
+
+# ✅ Keep vectorstore out (mounted separately)
+
+# ✅ Avoid test output
+test_*.py
+tests/
+

@@ -1,26 +1,35 @@
-# Ignore Python virtual environments
+# 🐍 Python environment
+.venv/
+env/
 venv/
-documents/
-HF/
-
-# Ignore environment files
-.env
-
-# Ignore Python cache
+*.py[cod]
 __pycache__/
+*.pyo
+*.pyd
+*.egg-info/
 
-# Ignore IDE config (like PyCharm)
+# 🗃️ System + Editor junk
+.DS_Store
+Thumbs.db
 .idea/
+.vscode/
+*.log
 
+# 🔐 Secrets
+.env
+.env_local
+documents/Stripe-keys.txt
 
-# Ignore the virtual environment folder inside stripe
-stripe/env_stripe
-
-# Ignore specific test data scripts
+# 🧪 Test scripts
 stripe/generate_test_data.py
 stripe/test-data.py
 
+# 💾 Databases and vector stores
 
-# Ignore the Stripe keys file
-documents/Stripe-keys.txt
+# 🚫 Stripe nested virtual env
+#stripe/env_stripe/
+
+# 📁 Avoid documents folder (if not needed in deployment)
+documents/
+HF/
 

@@ -1,0 +1,134 @@
+# graph.py (robust routing: tools, RAG, GPT with debug + LangGraph fix)
+import os
+import sys
+# Add the project root to the import path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from langgraph.graph import StateGraph
+from agents.state import AgentState
+from langchain.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent, AgentType
+from tools.api_tools import tools
+from tools.rag_tool import query_rag_tool
+import tools.rag_tool as rag_tool
+from agents.nodes.intent_classifier import classify_intent
+from agents.nodes.autonomous_gpt_node import run_autonomous_gpt
+
+# 🔐 Environment setup
+from dotenv import load_dotenv
+load_dotenv(override=True)
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("❌ Missing OPENAI_API_KEY")
+else:
+    print(f"🔐 OPENAI_API_KEY: {api_key[:10]}...")
+
+# 🧠 Init LLM and tool-based agent
+llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+agent = initialize_agent(tools, llm, agent_type=AgentType.CONVERSATIONAL_REACT_DESCRIPTION, verbose=True)
+
+# 🔧 Node: API tool execution
+def tool_node(state: AgentState) -> AgentState:
+    print(f"\n🔧 [TOOL NODE] Executing tool path for query: '{state.user_input}'")
+
+    try:
+        # Let GPT decide the tool, execute it, and summarize result
+        response = agent.invoke({"input": state.user_input})
+
+        state.final_output = response["output"]  # ✅ Use GPT summary
+        state.tool_result = None  # Optional: clear if not using raw JSON
+        for step in response.get("intermediate_steps", []):
+            if isinstance(step, tuple):
+                action, observation = step
+                state.append_step(f"Thought: {getattr(action, 'log', '').strip()}")
+                state.append_step(f"Action: {action.tool}({action.tool_input})")
+                state.append_step(f"Observation: {observation}")
+
+        state.append_step(f"Final Answer: {state.final_output}")
+        state.add_to_history(f"User: {state.user_input}\nAgent: {state.final_output}")
+
+    except Exception as e:
+        print(f"❌ Tool execution failed: {e}")
+        state.final_output = f"Tool error: {e}"
+        state.tool_result = []
+
+    print("✅ [TOOL NODE] State ready:", type(state))
+    return state
+
+
+# 📄 Node: RAG vector query
+def rag_node(state: AgentState) -> AgentState:
+    print(f"\n📄 [RAG NODE] Querying RAG for: '{state.user_input}'")
+    try:
+        result = query_rag_tool(state.user_input)
+        state.final_output = result
+        state.append_step(f"RAG Result:\n{result[:500]}...")  # Preview snippet
+        state.add_to_history(f"User: {state.user_input}\nRAG: {result}")
+    except Exception as e:
+        print(f"❌ RAG query failed: {e}")
+        state.final_output = f"RAG error: {e}"
+    print("✅ [RAG NODE] State ready:", type(state))
+    return state
+
+# 🔁 Node: Intent router (returns full state, NOT just a string!)
+def route_by_intent(state: AgentState) -> AgentState:
+    print(f"\n🧭 [INTENT ROUTER] Classifying intent for: '{state.user_input}'")
+    try:
+        state = classify_intent(state)
+        intent = state.intent
+        print(f"🔍 Detected intent: {intent}")
+        if intent not in {"tool", "rag", "autonomous"}:
+            print("⚠️ Invalid intent, defaulting to 'autonomous'")
+            state.intent = "autonomous"
+    except Exception as e:
+        print(f"❌ Intent classification error: {e}")
+        state.intent = "autonomous"
+        state.final_output = "Intent routing failed."
+    return state
+
+# 🧭 Routing logic for LangGraph (this returns the branch key)
+def branching_key(state: AgentState) -> str:
+    print(f"🔀 [Router] Branching key: {state.intent}")
+    return state.intent
+
+# 🧠 Node: fallback GPT handler
+def safe_autonomous_node(state: AgentState) -> AgentState:
+    print(f"\n🧠 [GPT NODE] Handling autonomous reasoning for: '{state.user_input}'")
+    try:
+        updated = run_autonomous_gpt(state)
+        print("✅ [GPT NODE] State returned:", type(updated))
+        return updated
+    except Exception as e:
+        print(f"❌ GPT fallback failed: {e}")
+        state.final_output = f"GPT error: {e}"
+        return state
+
+# 🔗 LangGraph setup
+workflow = StateGraph(AgentState)
+
+workflow.add_node("tool_node", tool_node)
+workflow.add_node("rag_node", rag_node)
+workflow.add_node("autonomous_node", safe_autonomous_node)
+workflow.add_node("intent_router", route_by_intent)
+
+workflow.set_entry_point("intent_router")
+
+workflow.add_conditional_edges(
+    "intent_router",
+    branching_key,
+    {
+        "tool": "tool_node",
+        "rag": "rag_node",
+        "autonomous": "autonomous_node"
+    }
+)
+
+workflow.set_finish_point("tool_node")
+workflow.set_finish_point("rag_node")
+workflow.set_finish_point("autonomous_node")
+
+agent_graph = workflow.compile()
+
+def build_autonomous_agent_graph():
+    print("🚀 Building autonomous agent graph with intent routing...")
+    return agent_graph

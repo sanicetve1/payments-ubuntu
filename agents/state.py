@@ -19,6 +19,7 @@ class AgentState(BaseModel):
     tool_args: Optional[dict] = None           # Parameters passed to tool
     tool_result: Optional[Any] = None          # Output returned from tool
     gpt_response: Optional[str] = None         # Raw response from GPT if used freely
+    routing_decision: Optional[str] = None     #Used to guide routing after decision_router_node
     final_output: Optional[str] = None         # What the agent sends back to the user
     intermediate_steps: List[str] = Field(default_factory=list)  # Node-by-node trace
 

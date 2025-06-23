@@ -5,6 +5,7 @@ from app.db import query_db
 from app.models import Payment
 
 router = APIRouter()
+print("📥 /payments endpoint hit")
 
 @router.get("/payments")
 def get_payments_by_method(method: str = Query(None)):
@@ -12,7 +13,7 @@ def get_payments_by_method(method: str = Query(None)):
     if method:
         cleaned = method.strip().lower().replace("'", "")
         results = query_db(
-            "SELECT * FROM payments WHERE LOWER(payment_method) = ?", (cleaned,)
+            "SELECT * FROM payments WHERE LOWER(payment_method) LIKE ?", (f"%{cleaned}%",)
         )
         print(f"✅ DB returned {len(results)} rows for '{cleaned}'")
         return results

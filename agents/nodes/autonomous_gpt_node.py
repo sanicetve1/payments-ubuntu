@@ -5,7 +5,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
 # Initialize GPT model
-llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7)
 
 # Optional: Prompt template to keep tone professional
 AUTONOMOUS_PROMPT = PromptTemplate.from_template("""

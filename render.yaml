@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: payments-agent
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RAG_VECTOR_PATH
+        value: /data/rag_vectorstore_local
+    disk:
+      name: agent-store
+      mountPath: /data
+      sizeGB: 1
+
