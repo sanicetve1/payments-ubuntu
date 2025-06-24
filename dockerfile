@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy project files
 COPY . /app
+RUN chmod +x start.sh
 
 # Upgrade pip and install requirements
 RUN pip install --upgrade pip && \
@@ -28,5 +29,6 @@ ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
 EXPOSE 8000 8501
 
 # Run both FastAPI and Streamlit via shell script
-CMD ["bash", "start.sh"]
+CMD ["bash", "-c", "./start.sh"]
+
 
