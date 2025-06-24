@@ -13,7 +13,7 @@ openai==1.84.0
 sentence-transformers
 langchain-community==0.3.24
 chromadb==1.0.12
-numpy==1.26.4
+numpy>=2.1.0
 
 # === Streamlit UI ===
 streamlit==1.45.1
